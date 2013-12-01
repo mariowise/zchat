@@ -1,0 +1,53 @@
+
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,300,100,700);
+
+body {
+	// background: rgb(245,245,245);
+	// color: rgb(50,50,50);
+}
+
+@chat-border: 1px solid rgb(180,180,180);
+.chat-room {
+	border-top: @chat-border;
+	border-left: @chat-border;
+	border-right: @chat-border;
+	width: 250px;
+	font-family: 'Roboto Slab', serif;
+	font-size: 12px;
+	background: rgb(245,245,245);
+	
+		position: fixed;
+		bottom: 0px;
+		right: 100px;
+
+	& .header {
+		border-bottom: @chat-border;
+		background-color: #CF4F4B;
+		color: white;
+		padding: 2.5px 5px;
+	}
+	& .body {
+		min-height: 200px;
+		padding: 5px;
+	}
+	& .actions {
+		padding: 5px;
+		border-top: @chat-border;
+		position: relative;
+		height: 50px;
+
+		& textarea {
+			border-radius: 0px;
+			width: 155px;
+			font-size: 12px;
+			resize: none;
+		}
+		& button {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			border-radius: 0px;
+			z-index: 10;
+		}
+	}
+}

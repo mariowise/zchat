@@ -31,7 +31,7 @@ app.use(express.bodyParser());
 app.use(express.methodOverride());
 
 // Use less middleware
-app.use(require('less-middleware')({ src: config.root + '/public' }));
+app.use(require('less-middleware')({ src: config.root + '/public', enable: ['less'] }));
 app.use(express.static(path.join(config.root, 'public')));
 
 //express/mongo session storage
@@ -57,8 +57,6 @@ app.use(express.csrf());
 // app.use(require('./middlewares/view-helpers'))
 
 app.use(app.router);
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
 if ('development' == app.get('env')) {

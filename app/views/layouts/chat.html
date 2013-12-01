@@ -1,0 +1,26 @@
+{% extends "layouts/layout.html" %}
+{% block CONTENT %}
+
+<div class="chat-room">
+	<div class="header">
+		Título conversación
+	</div>
+	<div class="body">
+		{% block MESSAGES %}{% endblock %}
+	</div>
+	<div class="actions">
+		<textarea></textarea>
+		<button class="btn">Enviar</button>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$('.chat-room textarea').keypress(function(e) {
+		if(e.keyCode == 13 && !e.shiftKey) {
+			e.preventDefault();
+			alert('Enviando mensaje');
+		}
+	});
+</script>
+
+{% endblock %}

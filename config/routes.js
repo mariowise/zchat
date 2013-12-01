@@ -18,8 +18,12 @@ module.exports = function(app, passport) {
 
     // Controllers
     var indexController = require('../app/controllers/indexController');
+    var chatController = require('../app/controllers/chatController');
 
     // Index
     app.get('/', indexController.index);
+
+    // Chat
+    app.get('/chat', chatController.index);
 
 }
