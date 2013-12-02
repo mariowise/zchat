@@ -8,6 +8,7 @@ body {
 
 @chat-border: 1px solid rgb(180,180,180);
 .chat-window {
+	position: relative;
 	border-top: @chat-border;
 	border-left: @chat-border;
 	border-right: @chat-border;
@@ -57,13 +58,28 @@ body {
 			font-size: 12px;
 		}
 	}
+	& > .fa-times {
+		position: absolute;
+		top: 2.5px;
+		right: 7.5px;
+		color: white;
+		font-family: FontAwesome;
+		font-style: normal;
+		
+		&:hover {
+			cursor: pointer;
+		}
+	}
 }
 #chat-bar {
 	position: fixed;
 	bottom: 0px;
 	right: 200px;
+	width: 6000px;
+	text-align: right;
 
 	& > div {
+		text-align: left;
 		display: inline-block;
 		margin-right: 20px;
 	}
@@ -94,6 +110,10 @@ body {
 
 			&.online {
 				border-left: 5px solid #52D553;
+			}
+			&:hover {
+				background-color: rgb(235,235,235);
+				cursor: pointer;
 			}
 		}
 	}

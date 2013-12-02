@@ -1,5 +1,6 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,300,100,700);
 .chat-window {
+  position: relative;
   border-top: 1px solid #b4b4b4;
   border-left: 1px solid #b4b4b4;
   border-right: 1px solid #b4b4b4;
@@ -45,12 +46,26 @@
   z-index: 10;
   font-size: 12px;
 }
+.chat-window > .fa-times {
+  position: absolute;
+  top: 2.5px;
+  right: 7.5px;
+  color: white;
+  font-family: FontAwesome;
+  font-style: normal;
+}
+.chat-window > .fa-times:hover {
+  cursor: pointer;
+}
 #chat-bar {
   position: fixed;
   bottom: 0px;
   right: 200px;
+  width: 6000px;
+  text-align: right;
 }
 #chat-bar > div {
+  text-align: left;
   display: inline-block;
   margin-right: 20px;
 }
@@ -79,6 +94,10 @@
 }
 #chat-friends > .list > .chat-friend.online {
   border-left: 5px solid #52D553;
+}
+#chat-friends > .list > .chat-friend:hover {
+  background-color: #ebebeb;
+  cursor: pointer;
 }
 #chat-friends > .hider {
   position: absolute;
