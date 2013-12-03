@@ -9,6 +9,9 @@ module.exports = {
         app: {
             name: 'ZChat'
         },
+        "socket.io": {
+            port: 3100
+        }
     },
     production: {
         db:'',

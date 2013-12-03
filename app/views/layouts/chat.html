@@ -8,26 +8,15 @@
 	<div class="list"></div>
 </div>
 
+<script type="text/javascript" src="http://localhost:3100/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="/js/chat.js"></script>
 <script type="text/javascript">
-	// var cw = new chatWindow('Mario López');
-	// cw.create($('#chat-bar'));
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo1' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	// cw.pushMessage({ header: 'Mario López', body: 'Hola mundo2' });
-	
 	var cf = new chatFriends($('#chat-friends')[0], $('#chat-bar'));
-	cf.updateFriend({ name: 'Mario López', status: 'online' });
-	cf.updateFriend({ name: 'Aldo Navarrete', status: 'online' });
-	cf.updateFriend({ name: 'Usuario anónimo', status: 'offline' });
-	cf.updateFriend({ name: 'María Paz', status: 'offline' });
-	cf.updateFriend({ name: 'Alicia antonia', status: 'offline' });
+	cf.updateFriend({ id: 1, name: 'Mario López', status: 'online' });
+	cf.updateFriend({ id: 2, name: 'Aldo Navarrete', status: 'online' });
+	cf.updateFriend({ id: 3, name: 'Usuario anónimo', status: 'offline' });
+	cf.updateFriend({ id: 4, name: 'María Paz', status: 'offline' });
+	cf.updateFriend({ id: 5, name: 'Alicia antonia', status: 'offline' });
 </script>
 
 {% endblock %}

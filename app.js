@@ -8,6 +8,7 @@ var express = require('express'),
 	path = require('path'),
 	fs = require('fs'),
 	config = require('./config/config')['development'],
+	socket = require('./socket');
 	mongoStore = require('connect-mongo')(express),
 	flash = require('connect-flash'),
 	nunjucks = require('nunjucks'),
@@ -23,7 +24,7 @@ nun_env = new nunjucks.Environment(new nunjucks.FileSystemLoader(config.root + '
 nun_env.express(app);
 
 app.use(express.favicon());
-app.use(express.logger('dev'));
+// app.use(express.logger('dev'));
 
 // cookieParser should be above session
 app.use(express.cookieParser());

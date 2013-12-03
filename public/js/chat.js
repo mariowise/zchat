@@ -3,7 +3,6 @@
 
 /**
  * ChatWindow
- * author: mariowise
 */
 function chatWindow(_id, _title, _socket) {
 	this.id = _id
@@ -28,11 +27,19 @@ chatWindow.prototype.create = function(holder) {
 	$($($(newOne).children('.actions')[0]).children('textarea')[0]).keypress(function(e) {
 		if(e.keyCode == 13 && !e.shiftKey) {
 			e.preventDefault();
-			alert('Enviando mensaje');
+			var msg = { to: self.id, msg: $(this).val() };
+			console.log(msg);
+			if(socket != undefined) {
+				socket.emit('message-to', msg);
+				$(this).val('');
+			} else {
+				alert('* Error: No se ha podido enviar el mensaje');
+			}
+
 		}
 	});
 	$(newOne).children('.fa-times').click(function() {
-		delete self.barlist[self.title];
+		delete self.barlist[self.id];
 		self.barlist.count--;
 		$(newOne).remove();
 	});
@@ -64,7 +71,6 @@ chatWindow.prototype.getMessages = function(socket) {
 
 /**
  * ChatFriends
- * author: mariowise
 */
 function chatFriends(_domObj, _holdBar) {
 	var self = this;
@@ -94,12 +100,6 @@ chatFriends.prototype.close = function() {
 	}, 1000);
 	$($(this.domObj).find('.fa-chevron-right')[0]).attr('class', 'fa-chevron-left');
 }
-chatFriends.prototype.ider = {
-	id: 0,
-	get: function() {
-		return ++this.id;
-	}
-}
 chatFriends.prototype.updateFriend = function(_friend) {
 	var self = this;
 	var friend = $(this.domObj).find('[name="' + _friend.name + '"]')[0];
@@ -116,14 +116,37 @@ chatFriends.prototype.updateFriend = function(_friend) {
 		else
 			$(list).append($(no).addClass('chat-friend').addClass(_friend.status).attr('name', _friend.name).html(_friend.name)[0]);
 		$(no).click(function() {
-			if(chatWindow.prototype.barlist[_friend.name] == undefined) {
-				var newWindow = new chatWindow(self.ider.get(), _friend.name);
+			if(chatWindow.prototype.barlist[_friend.id] == undefined) {
+				var newWindow = new chatWindow(_friend.id, _friend.name);
 				newWindow.create(self.holdBar);
 			}
 		});
 	} else
 		console.log('* Error: No ha sido posible encontrar la lista de contactos');
 }
-chatFriends.prototype.openChatWindow = function() {
 
+
+
+/**
+ * Socket.io
+*/
+var cf = undefined;
+var socket = undefined;
+function zchat(_id, _username, _secret) {
+	socket = io.connect('http://localhost:3100');
+	socket.lid = _id;
+	socket.username = _username;
+	socket.secret = _secret;
+
+	socket.on('connect', function() {
+		socket.emit('i-am', { id: socket.lid, username: socket.username, secret: socket.secret });
+		cf = new chatFriends($('#chat-friends')[0], $('#chat-bar'));
+	});
+	socket.on('user-update', function(chunk) {
+		console.log('user-update');
+		console.log(chunk);
+		if(chunk.id != socket.lid) {
+			cf.updateFriend({ id: chunk.id, name: chunk.username, status: chunk.status });
+		}
+	});
 }
