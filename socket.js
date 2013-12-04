@@ -47,7 +47,18 @@ io.sockets.on('connection', function(socket) {
 		var from = socket.lid; 
 		var to = msg.to;
 		Sala.update({ users: [{ id: from }, { id: to }] }, { $push: { messages: [{ from: from, msg: msg.msg }] }}, { upsert: true }, function(err, numberAfected, raw) {
-			
+			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
+			for(var i = 0; i < socketsById[from].socketList.length; i++)
+				socketsById[from].socketList[i].emit('message-from', { from: from, msg: msg.msg });
+			if(socketsById[to] != undefined)
+				for(var i = 0; i < socketsById[to].socketList.length; i++)
+					socketsById[to].socketList[i].emit('message-from', { from: from, msg: msg.msg });
+		});
+	});
+	socket.on('message-get', function(peer) {
+		var me = socket.lid;
+		Sala.find({ users: [{ id: me }, { id: peer }]}, { _id: 0, messages: 1 }, function(err, docs) {
+
 		});
 	});
 	socket.on('disconnect', function() {

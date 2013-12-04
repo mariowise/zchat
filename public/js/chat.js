@@ -31,11 +31,11 @@ chatWindow.prototype.create = function(holder) {
 			console.log(msg);
 			if(socket != undefined) {
 				socket.emit('message-to', msg);
+				self.pushMessage({ from: socket.username, msg: msg.msg });
 				$(this).val('');
 			} else {
 				alert('* Error: No se ha podido enviar el mensaje');
 			}
-
 		}
 	});
 	$(newOne).children('.fa-times').click(function() {
@@ -48,6 +48,7 @@ chatWindow.prototype.create = function(holder) {
 		self.barlist.count--;
 		$(holder).children().first().remove();
 	}
+	socket.emit('message-get', { peer: peer });
 
 	return newOne; // Retorna el nuevo elemento creado
 }
@@ -56,14 +57,11 @@ chatWindow.prototype.close = function() {
 }
 chatWindow.prototype.pushMessage = function(msg) {
 	var wall = $(this.domObj).children('.body');
-	$(wall).html($(wall).html() + '<div class="msg"><div class="header">'+ msg.header +'</div><div class="body">'+ msg.body +'</div></div>');
+	$(wall).html($(wall).html() + '<div class="msg'+ ((msg.from == socket.username) ? ' self' : '') +'"><div class="header">'+ msg.from +'</div><div class="body">'+ msg.msg +'</div></div>');
 	$(wall).animate({ scrollTop: $(wall).height() }, 'slow');
 	return this.messages.push(msg); // Retorna el número de mensajes en la conversación
 }
 chatWindow.prototype.sendAction = function(msg) {
-
-}
-chatWindow.prototype.getMessages = function(socket) {
 
 }
 
@@ -148,5 +146,13 @@ function zchat(_id, _username, _secret) {
 		if(chunk.id != socket.lid) {
 			cf.updateFriend({ id: chunk.id, name: chunk.username, status: chunk.status });
 		}
+	});
+	socket.on('message-from', function(msg) {
+		var from = msg.from;
+		var to = socket.lid;
+		var body = $('[name="'+ from +'"]').find('.body')[0];
+		if(chatWindow.prototype.barlist[from] != undefined) {
+			chatWindow.prototype.barlist[from].pushMessage(msg);
+		}		
 	});
 }

@@ -8,3 +8,11 @@ var sala_schema = new Schema({
 });
 
 module.exports = sala_schema;
+
+// Torpedo consulta
+// Sala
+// .findOne({'_id': sala_id})
+// .select({messages: {$elemMatch: {'_id': message_id}}})
+// .exec(function(err, sala) {
+//     // Code
+// });
