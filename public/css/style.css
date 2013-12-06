@@ -22,12 +22,14 @@
 }
 .chat-window > .body > .msg > .header {
   font-weight: bolder;
+  color: #D34949;
 }
 .chat-window > .body > .msg > .body {
   padding-left: 20px;
 }
 .chat-window > .body > .msg.self .header {
   text-align: right;
+  color: #E0A5A5;
 }
 .chat-window > .body > .msg.self .body {
   text-align: right;

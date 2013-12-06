@@ -158,11 +158,12 @@ function zchat(_id, _username, _secret) {
 		}		
 	});
 	socket.on('conversation-flush', function(data) {
-		// var wind = data.peer;
-		// if(chatWindow.prototype.barlist[wind] != undefined)
-		// 	for(var i = 0; i < data.conv.length; i++) {
-		// 		chatWindow.prototype.barlist[wind].pushMessage({ from: data.conv[i].username, msg:  });
-		// 		console.log(data.conv[i]);
-		// 	}
+		console.log('conversation-flush');
+		var wind = data.peer;
+		if(chatWindow.prototype.barlist[wind] != undefined)
+			for(var i = 0; i < data.conv.length; i++) {
+				chatWindow.prototype.barlist[wind].pushMessage({ from: data.conv[i].username, msg: data.conv[i].message });
+				console.log(data.conv[i]);
+			}
 	});
 }

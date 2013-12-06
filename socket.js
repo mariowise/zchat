@@ -44,7 +44,6 @@ io.sockets.on('connection', function(socket) {
 		var objectQuery = {};
 			objectQuery[from] = 1;
 			objectQuery[to] = 1;
-		// Si la sala no existe hay que crearla
 
 		Message.new([from, to], { username: from, message: msg.msg }, function() {
 			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
@@ -56,16 +55,17 @@ io.sockets.on('connection', function(socket) {
 		});
 	});
 	socket.on('message-get', function(peer) {
-		var me = socket.lid;
-		var objectQuery = {};
-			objectQuery[me] = 1;
-		for(var i = 0; i < peer.length; i++)
-			objectQuery[peer[i]] = 1;
-		console.log('Enviando mensajes de la conversación:');
-		console.log(objectQuery);
-		Message.find({ $where: "this.sala_id."+ me +" == 1 && this.sala_id."+ peer +" == 1" }).exec(function(err, docs) {
-			console.log('Solicitando mensajes de la conversación '+ me +', '+ peer);
-			console.log(docs);
+		var userlist = [];
+		var room_id = '';
+		userlist.push(socket.lid);
+		for(p in peer)
+			userlist.push(peer[p]);
+		for(el in userlist.sort())
+			room_id += '$$' + userlist[el];
+
+		console.log('Buscando la conversación '+ room_id);
+		Message.find({ room_id: room_id }).sort('created').exec(function(err, docs) {
+			console.log('  se encontraron '+ docs.length +' mensajes.');
 			socket.emit('conversation-flush', { peer: peer, conv: docs });
 		});
 	});
