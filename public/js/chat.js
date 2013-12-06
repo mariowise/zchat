@@ -16,6 +16,7 @@ function chatWindow(_id, _title, _socket) {
 	this.barlist.count++;
 }
 chatWindow.prototype.barlist = { count: 0 };
+chatWindow.prototype.messageHandlers = {};
 chatWindow.prototype.create = function(holder) {
 	var self = this;
 	var newOne = document.createElement('div');
@@ -48,7 +49,8 @@ chatWindow.prototype.create = function(holder) {
 		self.barlist.count--;
 		$(holder).children().first().remove();
 	}
-	socket.emit('message-get', { peer: peer });
+
+	socket.emit('message-get', [ this.id ]);
 
 	return newOne; // Retorna el nuevo elemento creado
 }
@@ -137,6 +139,7 @@ function zchat(_id, _username, _secret) {
 	socket.secret = _secret;
 
 	socket.on('connect', function() {
+		console.log('Connecting socket.io');
 		socket.emit('i-am', { id: socket.lid, username: socket.username, secret: socket.secret });
 		cf = new chatFriends($('#chat-friends')[0], $('#chat-bar'));
 	});
@@ -150,9 +153,16 @@ function zchat(_id, _username, _secret) {
 	socket.on('message-from', function(msg) {
 		var from = msg.from;
 		var to = socket.lid;
-		var body = $('[name="'+ from +'"]').find('.body')[0];
 		if(chatWindow.prototype.barlist[from] != undefined) {
 			chatWindow.prototype.barlist[from].pushMessage(msg);
 		}		
+	});
+	socket.on('conversation-flush', function(data) {
+		// var wind = data.peer;
+		// if(chatWindow.prototype.barlist[wind] != undefined)
+		// 	for(var i = 0; i < data.conv.length; i++) {
+		// 		chatWindow.prototype.barlist[wind].pushMessage({ from: data.conv[i].username, msg:  });
+		// 		console.log(data.conv[i]);
+		// 	}
 	});
 }

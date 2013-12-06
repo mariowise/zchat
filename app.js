@@ -8,11 +8,23 @@ var express = require('express'),
 	path = require('path'),
 	fs = require('fs'),
 	config = require('./config/config')['development'],
-	socket = require('./socket');
+	socket = undefined,
 	mongoStore = require('connect-mongo')(express),
 	flash = require('connect-flash'),
 	nunjucks = require('nunjucks'),
-	nun_env = undefined
+	nun_env = undefined,
+	mongoose = require('mongoose')
+
+// Bootstrap db connection
+mongoose.connect(config.db)
+
+// Bootstrap models
+var models_path = __dirname + '/app/models'
+fs.readdirSync(models_path).forEach(function (file) {
+  if (~file.indexOf('.js')) require(models_path + '/' + file)
+})
+socket = require('./socket');
+
 
 var app = express();
 
