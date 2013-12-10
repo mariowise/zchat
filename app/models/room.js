@@ -19,11 +19,3 @@ Room.statics = {
 };
 
 mongoose.model('room', Room);
-
-// Torpedo consulta
-// Sala
-// .findOne({'_id': sala_id})
-// .select({messages: {$elemMatch: {'_id': message_id}}})
-// .exec(function(err, sala) {
-//     // Code
-// });

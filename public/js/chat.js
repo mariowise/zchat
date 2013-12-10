@@ -111,10 +111,14 @@ chatFriends.prototype.updateFriend = function(_friend) {
 	var list = $(this.domObj).find('.list')[0];
 	if(list != undefined) {
 		var no = document.createElement('div');
+		var alerts = document.createElement('div');
+
 		if(_friend.status === 'online')
 			$(list).prepend($(no).addClass('chat-friend').addClass(_friend.status).attr('name', _friend.name).html(_friend.name)[0]);
 		else
 			$(list).append($(no).addClass('chat-friend').addClass(_friend.status).attr('name', _friend.name).html(_friend.name)[0]);
+		$(no).append($(alerts).addClass('alert-no'));
+		$(alerts).hide();
 		$(no).click(function() {
 			if(chatWindow.prototype.barlist[_friend.id] == undefined) {
 				var newWindow = new chatWindow(_friend.id, _friend.name);
@@ -123,6 +127,9 @@ chatFriends.prototype.updateFriend = function(_friend) {
 		});
 	} else
 		console.log('* Error: No ha sido posible encontrar la lista de contactos');
+}
+chatFriends.prototype.pushAlert = function(inalert) {
+
 }
 
 
@@ -154,8 +161,11 @@ function zchat(_id, _username, _secret) {
 		var from = msg.from;
 		var to = socket.lid;
 		if(chatWindow.prototype.barlist[from] != undefined) {
+			console.log(msg);
 			chatWindow.prototype.barlist[from].pushMessage(msg);
-		}		
+		} else {
+			// Acá es necesario poner la alerta en la fila del amigo
+		}
 	});
 	socket.on('conversation-flush', function(data) {
 		console.log('conversation-flush');
@@ -165,5 +175,8 @@ function zchat(_id, _username, _secret) {
 				chatWindow.prototype.barlist[wind].pushMessage({ from: data.conv[i].username, msg: data.conv[i].message });
 				console.log(data.conv[i]);
 			}
+	});
+	socket.on('alert-from', function(data) {
+		chatFriends.prototype.pushAlert(data);
 	});
 }

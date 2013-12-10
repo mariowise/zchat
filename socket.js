@@ -5,7 +5,8 @@ var mongoose        = require('mongoose')
 
 var Usuario 	= 	mongoose.model('user'),
 	Sala 		=	mongoose.model('room'),
-	Message 	= 	mongoose.model('message')
+	Message 	= 	mongoose.model('message'),
+	Alert 		= 	mongoose.model('alert')
 
 var io = require('socket.io').listen(config['socket.io'].port, { log: false });
 console.log('Soporte para socket.io corriendo en puerto ' + config['socket.io'].port);
@@ -41,17 +42,14 @@ io.sockets.on('connection', function(socket) {
 	socket.on('message-to', function(msg) {
 		var from = socket.lid; 
 		var to = msg.to;
-		var objectQuery = {};
-			objectQuery[from] = 1;
-			objectQuery[to] = 1;
 
-		Message.new([from, to], { username: from, message: msg.msg }, function() {
+		Message.new([from, to], { username: from, message: msg.msg }, function() {			
 			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
 			for(var i = 0; i < socketsById[from].socketList.length; i++)
 				socketsById[from].socketList[i].emit('message-from', { from: from, msg: msg.msg });
 			if(socketsById[to] != undefined)
 				for(var i = 0; i < socketsById[to].socketList.length; i++)
-					socketsById[to].socketList[i].emit('message-from', { from: from, msg: msg.msg });	
+					socketsById[to].socketList[i].emit('message-from', { from: from, msg: msg.msg });
 		});
 	});
 	socket.on('message-get', function(peer) {
@@ -64,7 +62,7 @@ io.sockets.on('connection', function(socket) {
 			room_id += '$$' + userlist[el];
 
 		console.log('Buscando la conversación '+ room_id);
-		Message.find({ room_id: room_id }).sort('created').exec(function(err, docs) {
+		Message.find({ room_id: room_id }).sort('created').limit(50).exec(function(err, docs) {
 			console.log('  se encontraron '+ docs.length +' mensajes.');
 			socket.emit('conversation-flush', { peer: peer, conv: docs });
 		});

@@ -22,11 +22,13 @@ Message.statics = {
 		attr['room_id'] = room_id;
 
 		var room = mongoose.model('room');
+		var alert = mongoose.model('alert');
 		console.log('\nActualizando datos de la sala.')
 		room.update({ room_id: room_id }, { visited: new Date() }, { upsert: true }, function(err, numberAfected, raw) {
 			if(err)
 				console.log(err);
 			console.log('Creando '+ numberAfected + ' salas.');
+			// alert.create({ user_id:  });
 			console.log('Registrando un nuevo mensaje.');	
 			self.create(attr, callback);
 		});		
