@@ -23,7 +23,7 @@ chatWindow.prototype.create = function(holder) {
 	this.domObj = newOne;
 	$(newOne).attr('name', this.id);
 	$(newOne).attr('class', 'chat-window');
-	$(newOne).html('<i class="fa-times"></i><div class="header">'+ this.title +'</div><div class="body"></div><div class="actions"><textarea></textarea><button class="btn">Enviar</button></div>');
+	$(newOne).html('<i class="fa-times"></i><div class="header">'+ this.title +'</div><div class="body"><div></div></div><div class="actions"><textarea></textarea></div>');
 	$(holder).append(newOne);
 	$($($(newOne).children('.actions')[0]).children('textarea')[0]).keypress(function(e) {
 		if(e.keyCode == 13 && !e.shiftKey) {
@@ -54,17 +54,12 @@ chatWindow.prototype.create = function(holder) {
 
 	return newOne; // Retorna el nuevo elemento creado
 }
-chatWindow.prototype.close = function() {
-
-}
 chatWindow.prototype.pushMessage = function(msg) {
-	var wall = $(this.domObj).children('.body');
+	var wall = $(this.domObj).children('.body').children('div');
+	var pwall = $(wall).parent();
 	$(wall).html($(wall).html() + '<div class="msg'+ ((msg.from == socket.username) ? ' self' : '') +'"><div class="header">'+ msg.from +'</div><div class="body">'+ msg.msg +'</div></div>');
-	$(wall).animate({ scrollTop: $(wall).height() }, 'slow');
+	$(pwall).animate({ scrollTop: $(wall).height() }, 25);
 	return this.messages.push(msg); // Retorna el número de mensajes en la conversación
-}
-chatWindow.prototype.sendAction = function(msg) {
-
 }
 
 
@@ -114,11 +109,20 @@ chatFriends.prototype.updateFriend = function(_friend) {
 		var alerts = document.createElement('div');
 
 		if(_friend.status === 'online')
-			$(list).prepend($(no).addClass('chat-friend').addClass(_friend.status).attr('name', _friend.name).html(_friend.name)[0]);
+			$(list).prepend(
+				$(no).addClass('chat-friend')
+					.addClass(_friend.status)
+					.attr('name', _friend.name)
+					.html(_friend.name)[0]
+			);
 		else
-			$(list).append($(no).addClass('chat-friend').addClass(_friend.status).attr('name', _friend.name).html(_friend.name)[0]);
-		$(no).append($(alerts).addClass('alert-no'));
-		$(alerts).hide();
+			$(list).append(
+				$(no).addClass('chat-friend')
+					.addClass(_friend.status)
+					.attr('name', _friend.name)
+					.html(_friend.name)[0]
+			);
+		$(no).append($(alerts).addClass('alert-no').hide());
 		$(no).click(function() {
 			if(chatWindow.prototype.barlist[_friend.id] == undefined) {
 				var newWindow = new chatWindow(_friend.id, _friend.name);

@@ -20,18 +20,18 @@
   padding: 5px;
   overflow-y: scroll;
 }
-.chat-window > .body > .msg > .header {
+.chat-window > .body .msg > .header {
   font-weight: bolder;
   color: #D34949;
 }
-.chat-window > .body > .msg > .body {
+.chat-window > .body .msg > .body {
   padding-left: 20px;
 }
-.chat-window > .body > .msg.self .header {
+.chat-window > .body .msg.self .header {
   text-align: right;
   color: #E0A5A5;
 }
-.chat-window > .body > .msg.self .body {
+.chat-window > .body .msg.self .body {
   text-align: right;
   padding-right: 20px;
 }
@@ -43,7 +43,7 @@
 }
 .chat-window > .actions > textarea {
   border-radius: 0px;
-  width: 160px;
+  width: 210px;
   font-size: 12px;
   resize: none;
 }
