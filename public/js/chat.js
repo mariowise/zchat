@@ -216,7 +216,7 @@ function zchat(_id, _username, _secret) {
 		console.log('conversation-flush');
 		var wind = data.peer;
 		if(chatWindow.prototype.barlist[wind] != undefined)
-			for(var i = 0; i < data.conv.length; i++) {
+			for(var i = data.conv.length-1; i >= 0; i--) {
 				chatWindow.prototype.barlist[wind].pushMessage({ from: data.conv[i].username, msg: data.conv[i].message });
 				console.log(data.conv[i]);
 			}

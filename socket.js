@@ -62,7 +62,7 @@ io.sockets.on('connection', function(socket) {
 			room_id += '$$' + userlist[el];
 
 		console.log('Buscando la conversación '+ room_id);
-		Message.find({ room_id: room_id }).sort('created').limit(50).exec(function(err, docs) {
+		Message.find({ room_id: room_id }).sort('-created').limit(30).exec(function(err, docs) {
 			console.log('  se encontraron '+ docs.length +' mensajes.');
 			socket.emit('conversation-flush', { peer: peer, conv: docs });
 		});
