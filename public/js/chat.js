@@ -44,6 +44,27 @@ chatWindow.prototype.create = function(holder) {
 		self.barlist.count--;
 		$(newOne).remove();
 	});
+	$(newOne).children('.header').click(function() {
+		if($(newOne).attr('small') != 'true') {
+			$(newOne).children('.actions').slideUp(400);
+			$(newOne).children('.body').slideUp(600, function() {
+				$(newOne).width(150);
+			});
+			$(newOne).attr('small', 'true');
+		} else {
+			$(newOne).width(250);
+			$(newOne).children('.actions').slideDown(400);
+			$(newOne).children('.body').slideDown(600, function() {
+				var wall = $(newOne).children('.body').children('div');
+				var pwall = $(wall).parent();
+				$(pwall).animate({ scrollTop: $(wall).height() }, 25);
+			});
+			$(newOne).attr('small', 'false');
+		}
+	});
+	$(newOne).children('.actions').find('textarea').focus(function() {
+		$(newOne).attr('panic', '');
+	});
 	if(self.barlist.count > 3) {
 		delete self.barlist[$(holder).children().first().attr('name')];
 		self.barlist.count--;
@@ -60,6 +81,23 @@ chatWindow.prototype.pushMessage = function(msg) {
 	$(wall).html($(wall).html() + '<div class="msg'+ ((msg.from == socket.username) ? ' self' : '') +'"><div class="header">'+ msg.from +'</div><div class="body">'+ msg.msg +'</div></div>');
 	$(pwall).animate({ scrollTop: $(wall).height() }, 25);
 	return this.messages.push(msg); // Retorna el número de mensajes en la conversación
+}
+chatWindow.prototype.beginAlert = function() {
+	var parent = $(this.domObj);
+	var wind = $(this.domObj).children('.header');
+	$(parent).attr('panic', 'true');
+	function panic() {
+		if($(parent).attr('panic') != 'true') {
+			$(wind).removeClass('panic');
+			return;	
+		}
+		if(!$(wind).hasClass('panic')) 
+			$(wind).addClass('panic');
+		else 
+			$(wind).removeClass('panic');
+		setTimeout(panic, 800);
+	}
+	panic();
 }
 
 
@@ -108,20 +146,16 @@ chatFriends.prototype.updateFriend = function(_friend) {
 		var no = document.createElement('div');
 		var alerts = document.createElement('div');
 
+		$(no).addClass('chat-friend')
+			.addClass(_friend.status)
+			.attr('name', _friend.name)
+			.html(_friend.name)[0];
+
 		if(_friend.status === 'online')
-			$(list).prepend(
-				$(no).addClass('chat-friend')
-					.addClass(_friend.status)
-					.attr('name', _friend.name)
-					.html(_friend.name)[0]
-			);
+			$(list).prepend($(no));
 		else
-			$(list).append(
-				$(no).addClass('chat-friend')
-					.addClass(_friend.status)
-					.attr('name', _friend.name)
-					.html(_friend.name)[0]
-			);
+			$(list).append($(no));
+
 		$(no).append($(alerts).addClass('alert-no').hide());
 		$(no).click(function() {
 			if(chatWindow.prototype.barlist[_friend.id] == undefined) {
@@ -135,6 +169,7 @@ chatFriends.prototype.updateFriend = function(_friend) {
 chatFriends.prototype.pushAlert = function(inalert) {
 
 }
+
 
 
 
@@ -164,11 +199,17 @@ function zchat(_id, _username, _secret) {
 	socket.on('message-from', function(msg) {
 		var from = msg.from;
 		var to = socket.lid;
+
+		console.log(msg);
 		if(chatWindow.prototype.barlist[from] != undefined) {
-			console.log(msg);
 			chatWindow.prototype.barlist[from].pushMessage(msg);
+			chatWindow.prototype.barlist[from].beginAlert();
 		} else {
-			// Acá es necesario poner la alerta en la fila del amigo
+			$('.chat-friend[name="'+ msg.from +'"]').click();
+			setTimeout(function() {
+				if(chatWindow.prototype.barlist[from] != undefined)
+					chatWindow.prototype.barlist[from].beginAlert();
+			}, 500);
 		}
 	});
 	socket.on('conversation-flush', function(data) {

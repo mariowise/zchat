@@ -5,6 +5,7 @@ var mongoose = require('mongoose')
 var Alert = new Schema({
 	user_id 	: 	{ type: String, index: true }, // Alert owner
 	peer_id 	: 	{ type: String, index: true }, // Alert trigger
+	msg_id 		: 	{ type: String, index: true }, // Message id
 	created 	: 	{ type: Date, default: Date.now }
 });
 

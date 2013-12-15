@@ -143,3 +143,6 @@
   cursor: pointer;
   color: white;
 }
+.panic {
+  background-color: #FA504A!important;
+}
