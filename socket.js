@@ -35,6 +35,9 @@ io.sockets.on('connection', function(socket) {
 				Usuario.find({}, function(err, docs) {
 					for(var i = 0; i < docs.length; i++) 
 						socket.emit('user-update', { id: docs[i]._id, username: docs[i].username, status: docs[i].status });
+					Alert.find({ user_id: socket.lid }, function(err, docs) {
+						socket.emit('alerts-flush', docs);
+					});
 				});
 			});
 		}
@@ -46,10 +49,37 @@ io.sockets.on('connection', function(socket) {
 		Message.new([from, to], { user_id: socket.lid, username: socket.username, message: msg.msg }, function() {			
 			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
 			for(var i = 0; i < socketsById[from].socketList.length; i++)
-				socketsById[from].socketList[i].emit('message-from', { from: { id: socket.lid, username: socket.username }, msg: msg.msg });
+				socketsById[from].socketList[i].emit('message-from', { 
+					from: { 
+						id: socket.lid, 
+						username: socket.username 
+					}, 
+					msg: msg.msg 
+				});
 			if(socketsById[to] != undefined)
 				for(var i = 0; i < socketsById[to].socketList.length; i++)
-					socketsById[to].socketList[i].emit('message-from', { from: { id: socket.lid, username: socket.username }, msg: msg.msg });
+					socketsById[to].socketList[i].emit('message-from', { 
+						from: { 
+							id: socket.lid, 
+							username: socket.username 
+						}, 
+						msg: msg.msg 
+					});
+			else { // El usuario no esta conectado
+				Alert.update({
+					user_id: to,
+					peer_id: socket.lid
+				}, { $inc: { cant: 1 } }, { upsert: true },
+				function() {
+					console.log('  usuario '+ socket.lid +' alerta a '+ to +' y le deja un mensaje pendiente');
+				});
+			}
+		});
+	});
+	socket.on('alert-pop', function(peer_id) {
+		Alert.update({ user_id: socket.lid, peer_id: peer_id }, { $set: { cant: 0 } }, { upsert: true }, function(err, numberAfected, raw) {
+			console.log('  devolviendo número de alertas a cero (docs actualizados: '+ numberAfected +')');
+			console.log({ user_id: socket.lid, peer_id: peer_id });
 		});
 	});
 	socket.on('message-get', function(peer) {

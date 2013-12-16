@@ -3,10 +3,9 @@ var mongoose = require('mongoose')
 	, Schema = mongoose.Schema
 
 var Alert = new Schema({
-	user_id 	: 	{ type: String, index: true }, // Alert owner
-	peer_id 	: 	{ type: String, index: true }, // Alert trigger
-	msg_id 		: 	{ type: String, index: true }, // Message id
-	created 	: 	{ type: Date, default: Date.now }
+	user_id 	: 	{ type: String, index: true }, 	// Alert addresse
+	peer_id 	: 	{ type: String, index: true }, 	// Alert creator
+	cant 		: 	{ type: Number, default: 0 }
 });
 
 Alert.statics = {

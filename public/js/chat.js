@@ -28,15 +28,17 @@ chatWindow.prototype.create = function(holder) {
 	$($($(newOne).children('.actions')[0]).children('textarea')[0]).keypress(function(e) {
 		if(e.keyCode == 13 && !e.shiftKey) {
 			e.preventDefault();
-			var msg = { to: self.id, msg: $(this).val() };
-			console.log(msg);
-			if(socket != undefined) {
-				socket.emit('message-to', msg);
-				self.pushMessage({ from: { id: socket.lid, username: socket.username}, msg: msg.msg });
-				$(this).val('');
-			} else {
+			if($(this).val() != '' && $(this).val() != '↵') {
+				var msg = { to: self.id, msg: $(this).val() };
+				console.log(msg);
+				if(socket != undefined) {
+					socket.emit('message-to', msg);
+					self.pushMessage({ from: { id: socket.lid, username: socket.username}, msg: msg.msg });
+					$(this).val('');
+				} else
 				alert('* Error: No se ha podido enviar el mensaje');
-			}
+			} else 
+				$(this).val('');			
 		}
 	});
 	$(newOne).children('.fa-times').click(function() {
@@ -72,6 +74,10 @@ chatWindow.prototype.create = function(holder) {
 	}
 
 	socket.emit('message-get', [ this.id ]);
+	socket.emit('alert-pop', this.id);
+	$('[fid="'+ this.id +'"] > .alert-no')
+		.html('0')
+		.fadeOut(800);
 
 	return newOne; // Retorna el nuevo elemento creado
 }
@@ -167,8 +173,13 @@ chatFriends.prototype.updateFriend = function(_friend) {
 	} else
 		console.log('* Error: No ha sido posible encontrar la lista de contactos');
 }
-chatFriends.prototype.pushAlert = function(inalert) {
-
+chatFriends.prototype.pushAlert = function(list) {
+	for(el in list) {
+		if(list[el].cant != 0)
+			$('[fid="'+ list[el].peer_id +'"] > .alert-no')
+				.html(list[el].cant)
+				.show();
+	}
 }
 
 
@@ -227,7 +238,9 @@ function zchat(_id, _username, _secret) {
 				console.log(data.conv[i]);
 			}
 	});
-	socket.on('alert-from', function(data) {
+	socket.on('alerts-flush', function(data) {
+		console.log('alerts-flush');
+		console.log(data);
 		chatFriends.prototype.pushAlert(data);
 	});
 }
