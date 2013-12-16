@@ -43,13 +43,13 @@ io.sockets.on('connection', function(socket) {
 		var from = socket.lid; 
 		var to = msg.to;
 
-		Message.new([from, to], { username: from, message: msg.msg }, function() {			
+		Message.new([from, to], { user_id: socket.lid, username: socket.username, message: msg.msg }, function() {			
 			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
 			for(var i = 0; i < socketsById[from].socketList.length; i++)
-				socketsById[from].socketList[i].emit('message-from', { from: from, msg: msg.msg });
+				socketsById[from].socketList[i].emit('message-from', { from: { id: socket.lid, username: socket.username }, msg: msg.msg });
 			if(socketsById[to] != undefined)
 				for(var i = 0; i < socketsById[to].socketList.length; i++)
-					socketsById[to].socketList[i].emit('message-from', { from: from, msg: msg.msg });
+					socketsById[to].socketList[i].emit('message-from', { from: { id: socket.lid, username: socket.username }, msg: msg.msg });
 		});
 	});
 	socket.on('message-get', function(peer) {

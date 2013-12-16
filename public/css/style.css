@@ -72,11 +72,13 @@
   right: 200px;
   width: 6000px;
   text-align: right;
+  pointer-events: none;
 }
 #chat-bar > div {
   text-align: left;
   display: inline-block;
   margin-right: 20px;
+  pointer-events: auto;
 }
 #chat-friends {
   height: 100%;
