@@ -44,6 +44,7 @@ chatWindow.prototype.create = function(holder) {
 	$(newOne).children('.fa-times').click(function() {
 		delete self.barlist[self.id];
 		self.barlist.count--;
+		socket.emit('close-tab', self.id);
 		$(newOne).remove();
 	});
 	$(newOne).children('.header').click(function() {
@@ -67,7 +68,7 @@ chatWindow.prototype.create = function(holder) {
 	$(newOne).children('.actions').find('textarea').focus(function() {
 		$(newOne).attr('panic', '');
 	});
-	if(self.barlist.count > 3) {
+	if(self.barlist.count * 273 > $(holder).width()) {
 		delete self.barlist[$(holder).children().first().attr('fid')];
 		self.barlist.count--;
 		$(holder).children().first().remove();
@@ -78,6 +79,7 @@ chatWindow.prototype.create = function(holder) {
 	$('[fid="'+ this.id +'"] > .alert-no')
 		.html('0')
 		.fadeOut(800);
+	socket.emit('open-tab', this.id);
 
 	return newOne; // Retorna el nuevo elemento creado
 }
@@ -85,7 +87,7 @@ chatWindow.prototype.pushMessage = function(msg) {
 	var wall = $(this.domObj).children('.body').children('div');
 	var pwall = $(wall).parent();
 	$(wall).html($(wall).html() + '<div class="msg'+ ((msg.from.id == socket.lid) ? ' self' : '') +'"><div class="header">'+ msg.from.username +'</div><div class="body">'+ msg.msg +'</div></div>');
-	$(pwall).animate({ scrollTop: $(wall).height() }, 25);
+	$(pwall).animate({ scrollTop: $(wall).height() }, 0);
 	return this.messages.push(msg); // Retorna el número de mensajes en la conversación
 }
 chatWindow.prototype.beginAlert = function() {
@@ -124,6 +126,11 @@ function chatFriends(_domObj, _holdBar) {
 		else
 			self.open();
 	});
+
+	$('<audio id="new-message-sounds" controls></audio>')
+		.css('display', 'none')
+		.html('<source src="http://localhost:3000/img/newmessage.mp3" type="audio/mpeg"><embed height="50" width="100" src="http://localhost:3000/img/newmessage.mp3">')
+		.appendTo('body')
 }
 chatFriends.prototype.open = function() {
 	this.state = 'open';
@@ -222,8 +229,10 @@ function zchat(_id, _username, _secret) {
 					chatWindow.prototype.barlist[fid].beginAlert();
 			}, 500);
 		}
+
+		$('#new-message-sounds').trigger('play')
 	});
-	socket.on('conversation-flush', function(data) {
+	socket.on('conversation-flush', function (data) {
 		console.log('conversation-flush');
 		var wind = data.peer;
 		if(chatWindow.prototype.barlist[wind] != undefined)
@@ -238,9 +247,25 @@ function zchat(_id, _username, _secret) {
 				console.log(data.conv[i]);
 			}
 	});
-	socket.on('alerts-flush', function(data) {
+	socket.on('alerts-flush', function (data) {
 		console.log('alerts-flush');
 		console.log(data);
 		chatFriends.prototype.pushAlert(data);
+	});
+	socket.on('open-tabs', function (data) {
+		for(var i = 0; i < data.length; i++) {
+			$('#chat-friends .list > [fid="'+ data[i] +'"]').click();
+		}
+	});
+	socket.on('open-tab', function (data) {
+		console.log('Recibiendo evento "open-tab" para '+ data)
+		$('#chat-friends .list > [fid="'+ data +'"]').click();
+	});
+	socket.on('force-close-tab', function (tabId) {
+		if(chatWindow.prototype.barlist[tabId]) {
+			delete chatWindow.prototype.barlist[tabId];
+			chatWindow.prototype.barlist.count--;
+			$('#chat-bar > [name="'+ tabId +'"]').remove();
+		}
 	});
 }

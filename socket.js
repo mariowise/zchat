@@ -2,6 +2,7 @@
 var mongoose        = require('mongoose')
   , config 			= require('./config/config')['development']
   , crypto 			= require('crypto')
+  , _ 				= require('underscore')
 
 var Usuario 	= 	mongoose.model('user'),
 	Sala 		=	mongoose.model('room'),
@@ -38,12 +39,16 @@ io.sockets.on('connection', function(socket) {
 					Alert.find({ user_id: socket.lid }, function(err, docs) {
 						socket.emit('alerts-flush', docs);
 					});
+					Usuario.findOne({ _id: socket.lid }, function (err, user) {
+						if(err) return;
+						socket.emit('open-tabs', user.openTabs);
+					});
 				});
 			});
 		}
 	});
 	socket.on('message-to', function(msg) {
-		var from = socket.lid; 
+		var from = socket.lid;
 		var to = msg.to;
 
 		Message.new([from, to], { user_id: socket.lid, username: socket.username, message: msg.msg }, function() {			
@@ -81,6 +86,21 @@ io.sockets.on('connection', function(socket) {
 			console.log('  devolviendo número de alertas a cero (docs actualizados: '+ numberAfected +')');
 			console.log({ user_id: socket.lid, peer_id: peer_id });
 		});
+	});
+	socket.on('open-tab', function (tabId) {
+		Usuario.addTab(socket.lid, tabId, function() {
+			console.log('Enviando "open-tab" '+ socket.lid)
+			_.each(socketsById[socket.lid].socketList, function (elem, index, list) {
+				elem.emit('open-tab', tabId)
+			})
+		});
+	});
+	socket.on('close-tab', function (tabId) {
+		Usuario.rmvTab(socket.lid, tabId);
+		console.log('Enviando close-tab a los demás socket')
+		_.each(socketsById[socket.lid].socketList, function (elem, index, list) {
+			elem.emit('force-close-tab', tabId)
+		})
 	});
 	socket.on('message-get', function(peer) {
 		var userlist = [];
