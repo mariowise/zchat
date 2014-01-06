@@ -27,7 +27,7 @@ Message.statics = {
 		room.update({ room_id: room_id }, { visited: new Date() }, { upsert: true }, function(err, numberAfected, raw) {
 			if(err)
 				console.log(err);
-			console.log('Creando '+ numberAfected + ' salas.');
+			console.log('Creando '+ numberAfected + ' salas con _id: '+ room_id +'.');
 			// alert.create({ user_id:  });
 			console.log('Registrando un nuevo mensaje.');	
 			self.create(attr, callback);

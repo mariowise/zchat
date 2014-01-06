@@ -48,10 +48,14 @@ io.sockets.on('connection', function(socket) {
 		}
 	});
 	socket.on('message-to', function(msg) {
-		var from = socket.lid;
-		var to = msg.to;
+		var from = socket.lid
+		  , to = msg.to
+		  , toa = to.split('$$')
 
-		Message.new([from, to], { user_id: socket.lid, username: socket.username, message: msg.msg }, function() {			
+		Message.new([from].concat(toa), { 
+			  user_id: socket.lid
+			, username: socket.username
+			, message: msg.msg }, function() {			
 			console.log('  mensaje '+ from + ' -> '+ to +' : '+ msg.msg);
 			for(var i = 0; i < socketsById[from].socketList.length; i++)
 				socketsById[from].socketList[i].emit('message-from', { 
@@ -61,24 +65,37 @@ io.sockets.on('connection', function(socket) {
 					}, 
 					msg: msg.msg 
 				});
-			if(socketsById[to] != undefined)
-				for(var i = 0; i < socketsById[to].socketList.length; i++)
-					socketsById[to].socketList[i].emit('message-from', { 
-						from: { 
-							id: socket.lid, 
-							username: socket.username 
-						}, 
-						msg: msg.msg 
-					});
-			else { // El usuario no esta conectado
-				Alert.update({
-					user_id: to,
-					peer_id: socket.lid
-				}, { $inc: { cant: 1 } }, { upsert: true },
-				function() {
-					console.log('  usuario '+ socket.lid +' alerta a '+ to +' y le deja un mensaje pendiente');
-				});
-			}
+			console.log('\nPropagando mensaje a la lista:')
+			console.log(toa)
+			console.log(Usuario.find({ _id: { $in: [from].concat(toa) }}))
+			console.log()
+			Usuario.find({ _id: { $in: [from].concat(toa) }}, function (err, docs) {
+
+				_.each(toa, function (item) {
+					if(socketsById[item] != undefined)
+						for(var i = 0; i < socketsById[item].socketList.length; i++)
+							socketsById[item].socketList[i].emit('message-from', { 
+								from: { 
+									id: socket.lid
+									, username: socket.username 
+									, groupData: (toa.length == 1) ? 
+										undefined :
+										docs
+								}, 
+								msg: msg.msg 
+							});
+					else if(toa.length == 1) { // El usuario no esta conectado
+						Alert.update({
+							user_id: item,
+							peer_id: socket.lid
+						}, { $inc: { cant: 1 } }, { upsert: true },
+						function() {
+							console.log('  usuario '+ socket.lid +' alerta a '+ item +' y le deja un mensaje pendiente');
+						});
+					}
+				})
+
+			})
 		});
 	});
 	socket.on('alert-pop', function(peer_id) {
@@ -89,7 +106,7 @@ io.sockets.on('connection', function(socket) {
 	});
 	socket.on('open-tab', function (tabId) {
 		Usuario.addTab(socket.lid, tabId, function() {
-			console.log('Enviando "open-tab" '+ socket.lid)
+			// console.log('Enviando "open-tab" '+ socket.lid)
 			_.each(socketsById[socket.lid].socketList, function (elem, index, list) {
 				elem.emit('open-tab', tabId)
 			})
@@ -97,7 +114,7 @@ io.sockets.on('connection', function(socket) {
 	});
 	socket.on('close-tab', function (tabId) {
 		Usuario.rmvTab(socket.lid, tabId);
-		console.log('Enviando close-tab a los demás socket')
+		// console.log('Enviando close-tab a los demás socket')
 		_.each(socketsById[socket.lid].socketList, function (elem, index, list) {
 			elem.emit('force-close-tab', tabId)
 		})
@@ -116,6 +133,16 @@ io.sockets.on('connection', function(socket) {
 			console.log('  se encontraron '+ docs.length +' mensajes.');
 			socket.emit('conversation-flush', { peer: peer, conv: docs });
 		});
+	});
+	socket.on('create-group', function (userlist) {
+		var room_id = ''
+		userlist.push(socket.lid)
+		for(el in userlist.sort())
+			room_id += '$$' + userlist[el]
+
+		console.log('Creando sala grupal: ' + room_id);
+
+		Sala.create({ room_id: room_id }, function () {})
 	});
 	socket.on('disconnect', function() {
 		if(socketsById[socket.lid] != undefined) {

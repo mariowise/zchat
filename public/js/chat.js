@@ -1,4 +1,15 @@
-
+var host = 'http://10.0.1.72';
+var DND_Piggy = {
+	data: {}
+	, set: function (name, elem) {
+		this.data[name] = elem
+	}
+	, get: function (name) {
+		var tmp = this.data[name]
+		delete this.data[name]
+		return tmp
+	}
+};
 
 
 /**
@@ -16,14 +27,16 @@ function chatWindow(_id, _title, _socket) {
 	this.barlist.count++;
 }
 chatWindow.prototype.barlist = { count: 0 };
+
 chatWindow.prototype.messageHandlers = {};
+
 chatWindow.prototype.create = function(holder) {
 	var self = this;
 	var newOne = document.createElement('div');
 	this.domObj = newOne;
 	$(newOne).attr('name', this.id);
 	$(newOne).attr('class', 'chat-window');
-	$(newOne).html('<i class="fa-times"></i><div class="header">'+ this.title +'</div><div class="body"><div></div></div><div class="actions"><textarea></textarea></div>');
+	$(newOne).html('<i class="fa-times"></i></i><div class="header">'+ this.title +'</div><div class="body"><div></div></div><div class="actions"><textarea></textarea></div>');
 	$(holder).append(newOne);
 	$($($(newOne).children('.actions')[0]).children('textarea')[0]).keypress(function(e) {
 		if(e.keyCode == 13 && !e.shiftKey) {
@@ -68,6 +81,8 @@ chatWindow.prototype.create = function(holder) {
 	$(newOne).children('.actions').find('textarea').focus(function() {
 		$(newOne).attr('panic', '');
 	});
+	self.setDNDHandlers(newOne);
+
 	if(self.barlist.count * 273 > $(holder).width()) {
 		delete self.barlist[$(holder).children().first().attr('fid')];
 		self.barlist.count--;
@@ -88,6 +103,15 @@ chatWindow.prototype.pushMessage = function(msg) {
 	var pwall = $(wall).parent();
 	$(wall).html($(wall).html() + '<div class="msg'+ ((msg.from.id == socket.lid) ? ' self' : '') +'"><div class="header">'+ msg.from.username +'</div><div class="body">'+ msg.msg +'</div></div>');
 	$(pwall).animate({ scrollTop: $(wall).height() }, 0);
+	$(pwall).scroll(function() {
+		if($(this).scrollTop() == 0) {
+			if($(this).attr('loading') != 'loading') {
+				$(this).attr('loading', 'loading');
+				console.log('Has llegado arriba');
+								
+			}
+		}
+	})
 	return this.messages.push(msg); // Retorna el número de mensajes en la conversación
 }
 chatWindow.prototype.beginAlert = function() {
@@ -106,6 +130,40 @@ chatWindow.prototype.beginAlert = function() {
 		setTimeout(panic, 800);
 	}
 	panic();
+}
+chatWindow.prototype.setDNDHandlers = function (elem) {
+	var self = this;
+
+	$(elem).bind('drop', function (evnt) {
+		var piggy = DND_Piggy.get('piggy')
+		  , userList = $(this).attr('name').split(',')
+		  , stringify = ''
+		if(userList.indexOf(piggy.fid) != -1)
+			return
+		userList.push(piggy.fid)
+		userList.sort()
+		
+		console.log('solicitando creación de nueva sala grupal'+
+			$(this).attr('name') + ' <= ' + piggy.fid)		
+
+		socket.emit('create-group', userList)
+
+		stringify = userList.join("$$")
+		$(this).attr('name', stringify)
+		$(this).children('.header').append(', ' + piggy.name)
+		
+		var buff = chatWindow.prototype.barlist[self.id]
+		delete chatWindow.prototype.barlist[self.id]
+		self.id = stringify
+		self.title = piggy.name
+		chatWindow.prototype.barlist[self.id] = buff
+
+		console.log('Setteando objeto chatWindow')
+		console.log(self)
+	});
+	$(elem).bind('dragover', function (evnt) {
+		evnt.preventDefault()
+	});
 }
 
 
@@ -129,7 +187,7 @@ function chatFriends(_domObj, _holdBar) {
 
 	$('<audio id="new-message-sounds" controls></audio>')
 		.css('display', 'none')
-		.html('<source src="http://localhost:3000/img/newmessage.mp3" type="audio/mpeg"><embed height="50" width="100" src="http://localhost:3000/img/newmessage.mp3">')
+		.html('<source src="'+ host +':3000/img/newmessage.mp3" type="audio/mpeg"><embed height="50" width="100" src="'+ host +':3000/img/newmessage.mp3">')
 		.appendTo('body')
 }
 chatFriends.prototype.open = function() {
@@ -161,6 +219,7 @@ chatFriends.prototype.updateFriend = function(_friend) {
 
 		$(no).addClass('chat-friend')
 			.addClass(_friend.status)
+			.attr('draggable', 'true')
 			.attr('fid', _friend.id)
 			.attr('name', _friend.name)
 			.html(_friend.name)[0];
@@ -177,6 +236,7 @@ chatFriends.prototype.updateFriend = function(_friend) {
 				newWindow.create(self.holdBar);
 			}
 		});
+		self.setDNDHandlers(no);		
 	} else
 		console.log('* Error: No ha sido posible encontrar la lista de contactos');
 }
@@ -188,6 +248,19 @@ chatFriends.prototype.pushAlert = function(list) {
 				.show();
 	}
 }
+chatFriends.prototype.setDNDHandlers = function (elem) {
+	var self = this;
+
+	$(elem).bind('drag', function (evnt) {
+		DND_Piggy.set('piggy', {
+			fid: $(this).attr('fid')
+			, name: $(this).attr('name') 
+		})
+	})
+	$(elem).bind('dragend', function (evnt) {
+
+	})
+}
 
 
 
@@ -197,19 +270,19 @@ chatFriends.prototype.pushAlert = function(list) {
 var cf = undefined;
 var socket = undefined;
 function zchat(_id, _username, _secret) {
-	socket = io.connect('http://localhost:3100');
+	socket = io.connect(host + ':3100');
 	socket.lid = _id;
 	socket.username = _username;
 	socket.secret = _secret;
 
 	socket.on('connect', function() {
-		console.log('Connecting socket.io');
+		// console.log('Connecting socket.io');
 		socket.emit('i-am', { id: socket.lid, username: socket.username, secret: socket.secret });
 		cf = new chatFriends($('#chat-friends')[0], $('#chat-bar'));
 	});
 	socket.on('user-update', function(chunk) {
-		console.log('user-update');
-		console.log(chunk);
+		// console.log('user-update');
+		// console.log(chunk);
 		if(chunk.id != socket.lid) {
 			cf.updateFriend({ id: chunk.id, name: chunk.username, status: chunk.status });
 		}
@@ -218,8 +291,29 @@ function zchat(_id, _username, _secret) {
 		var fid = msg.from.id;
 		var to = socket.lid;
 
+		console.log('message-from')
 		console.log(msg);
-		if(chatWindow.prototype.barlist[fid] != undefined) {
+		if(msg.from.groupData != undefined) {
+			var ids = []
+			for(el in msg.from.groupData)
+				ids.push(msg.from.groupData[el]._id)
+
+			var names = []
+			for(el in msg.from.groupData)
+				names.push(msg.from.groupData[el].username)
+			names.sort()
+			
+			ids.splice(ids.indexOf(socket.lid), 1)
+			names.splice(ids.indexOf(socket.username), 1)
+			var auxId = ids.join('$$')
+
+			if(chatWindow.prototype.barlist[auxId] == undefined) {
+				var newWindow = new chatWindow(auxId, names.join(', '))
+					newWindow.create(cf.holdBar)
+			}
+			chatWindow.prototype.barlist[auxId].pushMessage(msg)
+			chatWindow.prototype.barlist[auxId].beginAlert()			
+		} else if(chatWindow.prototype.barlist[fid] != undefined) {
 			chatWindow.prototype.barlist[fid].pushMessage(msg);
 			chatWindow.prototype.barlist[fid].beginAlert();
 		} else {
@@ -229,11 +323,11 @@ function zchat(_id, _username, _secret) {
 					chatWindow.prototype.barlist[fid].beginAlert();
 			}, 500);
 		}
-
-		$('#new-message-sounds').trigger('play')
+		if(socket.lid != fid)
+			$('#new-message-sounds').trigger('play')
 	});
 	socket.on('conversation-flush', function (data) {
-		console.log('conversation-flush');
+		// console.log('conversation-flush');
 		var wind = data.peer;
 		if(chatWindow.prototype.barlist[wind] != undefined)
 			for(var i = data.conv.length-1; i >= 0; i--) {
@@ -244,12 +338,12 @@ function zchat(_id, _username, _secret) {
 					}, 
 					msg: data.conv[i].message 
 				});
-				console.log(data.conv[i]);
+				// console.log(data.conv[i]);
 			}
 	});
 	socket.on('alerts-flush', function (data) {
-		console.log('alerts-flush');
-		console.log(data);
+		// console.log('alerts-flush');
+		// console.log(data);
 		chatFriends.prototype.pushAlert(data);
 	});
 	socket.on('open-tabs', function (data) {
@@ -258,7 +352,6 @@ function zchat(_id, _username, _secret) {
 		}
 	});
 	socket.on('open-tab', function (data) {
-		console.log('Recibiendo evento "open-tab" para '+ data)
 		$('#chat-friends .list > [fid="'+ data +'"]').click();
 	});
 	socket.on('force-close-tab', function (tabId) {
@@ -269,3 +362,14 @@ function zchat(_id, _username, _secret) {
 		}
 	});
 }
+
+
+/*
+
+	* Cuando se abre la ventana solo hay que cargar los mensajes y no poner el mensaje
+	  (mensaje repetido)
+	* Se esta abriendo la ventana del que habló aparte de la del grupo
+	* Cuando ya existe una sala, el que la crea la expande y los que ya la tenian 
+	  experimentan un fork de la ventana con el nuevo usuario
+
+*/

@@ -66,6 +66,17 @@
 .chat-window > .fa-times:hover {
   cursor: pointer;
 }
+.chat-window > .fa-plus-square {
+  position: absolute;
+  top: 2.5px;
+  right: 22px;
+  color: white;
+  font-family: FontAwesome;
+  font-style: normal;
+}
+.chat-window > .fa-plus-square:hover {
+  cursor: pointer;
+}
 #chat-bar {
   position: fixed;
   bottom: 0px;
